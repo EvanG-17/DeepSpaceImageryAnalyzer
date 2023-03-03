@@ -33,7 +33,7 @@
       <ImageView fx:id="originalImage" fitHeight="512.0" fitWidth="512.0" layoutX="189.0" layoutY="43.0" pickOnBounds="true" preserveRatio="true" />
       <Button fx:id="greyscaleButton" layoutX="14.0" layoutY="36.0" mnemonicParsing="false" onAction="#onSetGreyscale" prefHeight="25.0" prefWidth="163.0" text="B&amp;W" />
       <ImageView fx:id="alteredImage" fitHeight="512.0" fitWidth="512.0" layoutX="720.0" layoutY="43.0" pickOnBounds="true" preserveRatio="true" />
-      <Slider fx:id="luminance" blockIncrement="5.0" layoutX="14.0" layoutY="541.0" max="1.0" min="-1.0" onMouseDragged="#luminanceSlider" prefHeight="14.0" prefWidth="163.0" />
+      <Slider fx:id="luminance" blockIncrement="5.0" layoutX="14.0" layoutY="541.0" max="255.0" onMouseDragged="#luminanceSlider" prefHeight="14.0" prefWidth="163.0" showTickLabels="true" value="127.0" />
       <Label layoutX="14.0" layoutY="524.0" prefHeight="17.0" prefWidth="163.0" text="Luminance Threshold" />
       <Slider fx:id="redSlider" layoutX="305.0" layoutY="597.0" max="255.0" onMouseDragged="#luminanceSlider" value="127.0" />
       <Slider fx:id="greenSlider" layoutX="486.0" layoutY="597.0" max="255.0" onMouseDragged="#luminanceSlider" value="127.0" />

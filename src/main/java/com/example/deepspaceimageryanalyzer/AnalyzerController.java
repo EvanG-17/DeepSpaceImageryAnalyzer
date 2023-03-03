@@ -8,6 +8,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.image.*;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.effect.ColorAdjust;
@@ -88,6 +89,7 @@ public class AnalyzerController {
     public void onSetGreyscale(ActionEvent actionEvent) {
         Image image = originalImage.getImage();
 
+
         if (image == null) {
             System.out.println("No image selected");
             return;
@@ -103,15 +105,19 @@ public class AnalyzerController {
             for (int x = 0; x < width; x++) {
                 int pixel = pixelReader.getArgb(x, y);
 
+
+
                 int alpha = ((pixel >> 24) & 0xff);
                 int red = ((pixel >> 16) & 0xff);
                 int green = ((pixel >> 8) & 0xff);
                 int blue = (pixel & 0xff);
 
-                int grayLevel = (int) (0.2162 * red + 0.7152 * green + 0.0722 * blue);
-                int grey = (alpha << 24) + (grayLevel << 16) + (grayLevel << 8) + grayLevel;
 
-                grayImage.getPixelWriter().setArgb(x, y, grey);
+                if(red >= luminance.getValue() && green >= luminance.getValue() && blue >= luminance.getValue())
+                    grayImage.getPixelWriter().setColor(x, y, Color.WHITE);
+                else
+                    grayImage.getPixelWriter().setColor(x, y, Color.BLACK);
+
             }
 
             alteredImage.setImage(grayImage);
@@ -119,8 +125,11 @@ public class AnalyzerController {
         }
     }
 
+
+
     public void luminanceSlider() {
-        colorAdjust.setBrightness(luminance.getValue());
-        alteredImage.setEffect(colorAdjust);
+//        colorAdjust.setBrightness(luminance.getValue());
+//        alteredImage.setEffect(colorAdjust);
     }
+
 }
