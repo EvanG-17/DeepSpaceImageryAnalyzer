@@ -1,7 +1,6 @@
 // Evan Tynan Geary 20098723 Applied Computing Forensics
 
 
-
 package com.example.deepspaceimageryanalyzer;
 
 
@@ -21,7 +20,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -40,6 +38,7 @@ public class AnalyzerController {
     public Slider redSlider;
     public Slider greenSlider;
     public Slider blueSlider;
+    //Hash map used for storing our disjoint sets
     public HashMap<Integer, ArrayList<Integer>> hashMapStar = new HashMap();
     public int[] starArray;
     public Label starAmountLabel;
@@ -101,7 +100,6 @@ public class AnalyzerController {
     }
 
 
-
     public void onSetBW() {
         if (this.originalImage != null && this.alteredImage != null) {
             // get the selected image
@@ -154,20 +152,20 @@ public class AnalyzerController {
         // get the selected image
         Image selectedImage = this.originalImage.getImage();
         PixelReader pixelReader = selectedImage.getPixelReader();
-        int height = (int)selectedImage.getHeight();
-        int width = (int)selectedImage.getWidth();
+        int height = (int) selectedImage.getHeight();
+        int width = (int) selectedImage.getWidth();
         // we create a writable image to store the random color image
         WritableImage randomColorImage = new WritableImage(width, height);
         PixelWriter pixelWriter = randomColorImage.getPixelWriter();
 
         //for loop iterates over each pixel in our image
-        for (int row = 0; row < height; row++){
-            for (int column = 0; column < width; column++){
+        for (int row = 0; row < height; row++) {
+            for (int column = 0; column < width; column++) {
                 int index = (row * width) + column;
                 int root = UnionFind.find(starArray, index);
 
                 // here if the root of the star component is not present in our hashmap, set the pixel color to black
-                if (!hashMapStar.containsKey(root)){
+                if (!hashMapStar.containsKey(root)) {
                     pixelWriter.setColor(column, row, BLACK);
                 }
             }
@@ -175,15 +173,15 @@ public class AnalyzerController {
 
         // we then generate random colours for stars and set the each pixel to the
         // generated colours
-        for(int row = 0; row < height; row++){
-            for(int column = 0; column < width; column++){
+        for (int row = 0; row < height; row++) {
+            for (int column = 0; column < width; column++) {
                 int index = (row * width) + column;
                 int root = UnionFind.find(starArray, index);
 
 
                 // if our hashmap has the root
                 // generate a random color for the star
-                if (hashMapStar.containsKey(root)){
+                if (hashMapStar.containsKey(root)) {
 
 
                     int red = (int) (Math.random() * 256);
@@ -206,21 +204,25 @@ public class AnalyzerController {
         }
     }
 
-
-
+    //got help here https://stackoverflow.com/questions/7602665/store-an-array-in-hashmap
     public void storeImageInHashMap() {
         if (this.hashMapStar != null) {
             this.hashMapStar.clear();
         }
 
-        for(int i = 0; i < this.starArray.length; ++i) {
+        //iterate through star array
+        for (int i = 0; i < this.starArray.length; ++i) {
+            //check if element is background or not
             if (this.starArray[i] != -1) {
+                // finds the root of the current element using the UnionFind class and "find" method
                 int root = UnionFind.find(this.starArray, i);
+                //checks if root is already in the hashMap star
                 if (!this.hashMapStar.containsKey(root)) {
+                    //creates new array list and associates it with our hashmap Star
                     this.hashMapStar.put(root, new ArrayList());
                 }
-
-                ((ArrayList)this.hashMapStar.get(root)).add(i);
+                // we then add the current element to the ArrayList associated with the root in the hashMapStar
+                ((ArrayList) this.hashMapStar.get(root)).add(i);
             }
         }
 
@@ -228,7 +230,9 @@ public class AnalyzerController {
     }
 
     public void printArray(int width, int height) {
-        for(int i = 0; i < this.starArray.length; ++i) {
+        //iterate through our starArray
+        for (int i = 0; i < this.starArray.length; ++i) {
+            //we check if current index is at the start of a new row
             if (i % width == 0) {
                 System.out.println("");
             }
@@ -240,13 +244,18 @@ public class AnalyzerController {
     }
 
     public void mergeElements(int width, int height) {
-        for(int i = 0; i < this.starArray.length; ++i) {
+        //we iterate through starArray
+        for (int i = 0; i < this.starArray.length; ++i) {
+            //check if element is background or not
             if (this.starArray[i] >= 0) {
+                // we check if there is a neighboring element to the right (i + 1)
                 if (i + 1 < this.starArray.length && i + 1 % width != 0 && this.starArray[i + 1] >= 0) {
+                    // merges the current element with the neighboring element to the right
                     UnionFind.union(this.starArray, i, i + 1);
                 }
-
+                // check if there is a neighboring element below (i + width)aa
                 if (i + width < this.starArray.length && this.starArray[i + width] >= 0) {
+                    // we finally merge the current element with the neighboring element below
                     UnionFind.union(this.starArray, i, i + width);
                 }
             }
@@ -256,53 +265,80 @@ public class AnalyzerController {
 
 
     public int[] getDisjointSetSizes() {
+
+        //array list to store our root values
         ArrayList<Integer> sizes = new ArrayList<Integer>();
+
+        //iterate through our hash map
         for (int key : hashMapStar.keySet()) {
+            //use Union Find "find" method to find our root
             int root = UnionFind.find(starArray, key);
+            //see if root is not here already
             if (!sizes.contains(root)) {
                 sizes.add(root);
             }
         }
+
+        // array to store our set sizes
         int[] setSizes = new int[sizes.size()];
+        //iterate through root array list we made
         for (int i = 0; i < sizes.size(); i++) {
+            //get sizes from our sizes Arraylist
             int root = sizes.get(i);
             int size = 0;
+
+            //iterate through hashMapStar
             for (int key : hashMapStar.keySet()) {
+                //we check if the root of the key matches current
                 if (UnionFind.find(starArray, key) == root) {
-                    size+= hashMapStar.get(key).size();
+                    //increment size by size of current key
+                    size += hashMapStar.get(key).size();
                 }
             }
+            //store sizes in setSizes
             setSizes[i] = size;
-            System.out.println("Size of star(s) are  " + root + ": " + size + " pixels.");
+            System.out.println("Size of star(s) at  " + root + " are " + size + " pixels big.");
         }
         return setSizes;
     }
 
     public void starBlueCircles() {
+        //all keys from our star hash map
         Set<Integer> keySet = this.hashMapStar.keySet();
         int blueCirclesCount = 0;
 
+        //iterate through star hashmap
         for (Integer hashRoot : keySet) {
             System.out.println("" + hashRoot + " " + this.hashMapStar.get(hashRoot));
-            ArrayList<Integer> rootList = (ArrayList)this.hashMapStar.get(hashRoot);
+            ArrayList<Integer> rootList = (ArrayList) this.hashMapStar.get(hashRoot);
 
-            int width = (int)this.originalImage.getImage().getWidth();
-            int height = (int)this.originalImage.getImage().getHeight();
+            //width and height of original image
+            int width = (int) this.originalImage.getImage().getWidth();
+            int height = (int) this.originalImage.getImage().getHeight();
+
+            //variables we store MIN and MAX coordinates inside
             int firstX = Integer.MAX_VALUE;
             int firstY = Integer.MAX_VALUE;
             int lastX = 0;
             int lastY = 0;
 
-            for(int i = 0; i < rootList.size(); ++i) {
+
+            //iterare though rootlist
+            for (int i = 0; i < rootList.size(); ++i) {
+
+                //update MIN and MAX coordinates
                 if (rootList.get(i) % width < firstX) {
                     firstX = rootList.get(i) % width;
                 }
+                //update MIN and MAX coordinates
                 if (rootList.get(i) / width < firstY) {
                     firstY = rootList.get(i) / width;
                 }
+                //update MIN and MAX coordinates
                 if (rootList.get(i) % width > lastX) {
                     lastX = rootList.get(i) % width;
                 }
+                //update MIN and MAX coordinates
                 if (rootList.get(i) / width > lastY) {
                     lastY = rootList.get(i) / width;
                 }
@@ -312,48 +348,69 @@ public class AnalyzerController {
             double XScale = bounds.getWidth() / this.originalImage.getImage().getWidth();
             double YScale = bounds.getHeight() / this.originalImage.getImage().getHeight();
 
-            firstX = (int)((double)firstX * XScale);
-            firstY = (int)((double)firstY * YScale);
 
-            lastX = (int)((double)lastX * XScale);
-            lastY = (int)((double)lastY * YScale);
+            //we scale X and Y
+            firstX = (int) ((double) firstX * XScale);
+            firstY = (int) ((double) firstY * YScale);
 
+            lastX = (int) ((double) lastX * XScale);
+            lastY = (int) ((double) lastY * YScale);
+
+
+            //we find the midpoint of the circle
             int midX = firstX + (lastX - firstX) / 2;
             int midY = firstY + (lastY - firstY) / 2;
 
+            //make a new circle
             Circle circle = new Circle();
+            //sets midpoint of new circle
             circle.setCenterX(midX);
             circle.setCenterY(midY);
+            //sets radius of new circle
             circle.setRadius(Math.max(midX - firstX, midY - firstY));
+            //circle features
             circle.setFill(Color.TRANSPARENT);
             circle.setStroke(Color.BLUE);
             circle.setStrokeWidth(1.0);
             circle.setTranslateX(this.originalImage.getLayoutX());
             circle.setTranslateY(this.originalImage.getLayoutY());
-            ((Pane)this.originalImage.getParent()).getChildren().add(circle);
+            //adds new circle
+            ((Pane) this.originalImage.getParent()).getChildren().add(circle);
+            //counts up
             blueCirclesCount++;
         }
+
         starAmountLabel.setText("Number Of Stars: " + blueCirclesCount);
     }
 
     public void numberStar() {
 
+        //we make new array list to store our stars
         ArrayList<Circle> circleList = new ArrayList();
-        for (Object o : ((Pane)this.originalImage.getParent()).getChildren())
-
+        //iterate through node
+        for (Object o : ((Pane) this.originalImage.getParent()).getChildren())
+            //check if child is a circle
             if (o instanceof Circle)
+                //if correct, add to circleList array
                 circleList.add((Circle) o);
 
-        Collections.sort(circleList, (a, b) -> (int)(b.getRadius() - a.getRadius()));
+        //descending order sort
+        Collections.sort(circleList, (a, b) -> (int) (b.getRadius() - a.getRadius()));
+
         System.out.println(circleList);
+
         int count = 1;
 
-        for (Circle c: circleList){
-            Text numberS = new Text(c.getCenterX(), c.getCenterY(), count +"");
+        for (Circle c : circleList) {
+            //text to number each individual star
+            Text numberS = new Text(c.getCenterX(), c.getCenterY(), count + "");
+            //colour of text font
             numberS.setStroke(Color.ORANGERED);
+
             numberS.setTranslateX(this.originalImage.getLayoutX());
             numberS.setTranslateY(this.originalImage.getLayoutY());
-            ((Pane)this.originalImage.getParent()).getChildren().add(numberS);
+            //add text to parent node
+            ((Pane) this.originalImage.getParent()).getChildren().add(numberS);
             count++;
             if (count > 50) {
                 break;
@@ -362,13 +419,13 @@ public class AnalyzerController {
     }
 
 
-
-
+    //deletes all blue circles
     public void resetBlueCircles(ActionEvent actionEvent) {
         Pane originalImagePane = (Pane) originalImage.getParent();
         originalImagePane.getChildren().removeIf(node -> node instanceof Circle);
     }
 
+    //deletes all circle numbers
     public void resetCircleNumbers(ActionEvent actionEvent) {
         Pane originalImagePane = (Pane) originalImage.getParent();
         originalImagePane.getChildren().removeIf(node -> node instanceof Text);
