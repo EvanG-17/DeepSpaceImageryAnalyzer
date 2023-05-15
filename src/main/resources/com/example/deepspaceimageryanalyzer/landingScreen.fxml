@@ -48,5 +48,6 @@
       <Button fx:id="starCircleButton" layoutX="298.0" layoutY="642.0" mnemonicParsing="false" onAction="#starBlueCircles" prefHeight="25.0" prefWidth="140.0" text="Circle Stars" />
       <Button fx:id="numberStarButton" layoutX="486.0" layoutY="642.0" mnemonicParsing="false" onAction="#numberStar" prefHeight="25.0" prefWidth="140.0" text="Count " />
       <Button fx:id="starSizeButton" layoutX="701.0" layoutY="642.0" mnemonicParsing="false" onAction="#getDisjointSetSizes" prefHeight="25.0" prefWidth="140.0" text="Star Sizes" />
+      <Button fx:id="randomColourButton" layoutX="298.0" layoutY="681.0" mnemonicParsing="false" onAction="#randomStarColour" prefHeight="25.0" prefWidth="140.0" text="Random Star Colour" />
    </children>
 </AnchorPane>

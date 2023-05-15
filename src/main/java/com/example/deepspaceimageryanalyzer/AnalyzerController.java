@@ -1,3 +1,7 @@
+// Evan Tynan Geary 20098723 Applied Computing Forensics
+
+
+
 package com.example.deepspaceimageryanalyzer;
 
 
@@ -8,10 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.effect.ColorAdjust;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelReader;
-import javafx.scene.image.WritableImage;
+import javafx.scene.image.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -25,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
+
+import static javafx.scene.paint.Color.BLACK;
 
 public class AnalyzerController {
     public MenuItem uploadButton;
@@ -45,6 +48,9 @@ public class AnalyzerController {
     public Button starSizeButton;
     public MenuItem resetCircleButton;
     public MenuItem resetCircleNumButton;
+    public Button randomColourButton;
+    private int width;
+    private int height;
 
     Stage stage;
 
@@ -94,67 +100,109 @@ public class AnalyzerController {
         }
     }
 
-    //Black and White method based upon user inputted luminance level.
-//    public void onSetBW() {
-//        Image image = originalImage.getImage();
-//        PixelReader pixelReader = image.getPixelReader();
-//        int width = (int) image.getWidth();
-//        int height = (int) image.getHeight();
-//        this.starArray = new int[height * width];
-//
-//        WritableImage grayImage = new WritableImage(width, height);
-//
-//        for (int y = 0; y < height; y++) {
-//            for (int x = 0; x < width; x++) {
-//                int pixel = pixelReader.getArgb(x, y);
-//
-//                int red = ((pixel >> 16) & 0xff);
-//                int green = ((pixel >> 8) & 0xff);
-//                int blue = (pixel & 0xff);
-//
-//                if (red >= luminance.getValue() && green >= luminance.getValue() && blue >= luminance.getValue()) {
-//                    grayImage.getPixelWriter().setColor(x, y, Color.WHITE);
-//                    this.starArray[y * width + x] = y * width + x;
-//                } else {
-//                    grayImage.getPixelWriter().setColor(x, y, Color.BLACK);
-//                    this.starArray[y * width + x] = -1;
-//                }
-//
-//            }
-//            alteredImage.setImage(grayImage);
-//        }
-//       this.storeImageInHashMap();
-//        this.printArray(width,height);
-//        this.mergeElements(width,height);
-//    }
+
 
     public void onSetBW() {
         if (this.originalImage != null && this.alteredImage != null) {
+            // get the selected image
             Image selectedImage = this.originalImage.getImage();
             PixelReader pixelReaderbw = selectedImage.getPixelReader();
-            int height = (int)selectedImage.getHeight();
-            int width = (int)selectedImage.getWidth();
+            int height = (int) selectedImage.getHeight();
+            int width = (int) selectedImage.getWidth();
+
+            // initalize array
             this.starArray = new int[height * width];
+
+            // creates a writable image for the black and white image
             WritableImage blackWhiteImage = new WritableImage(width, height);
 
-            for(int y = 0; y < height; ++y) {
-                for(int x = 0; x < width; ++x) {
-                    int red = (int)(pixelReaderbw.getColor(x, y).getRed() * 255.0);
-                    int green = (int)(pixelReaderbw.getColor(x, y).getGreen() * 255.0);
-                    int blue = (int)(pixelReaderbw.getColor(x, y).getBlue() * 255.0);
-                    if ((double)red >= this.luminance.getValue() && (double)green >= this.luminance.getValue() && (double)blue >= this.luminance.getValue()) {
+            // we iterate over each pixel in the image
+            for (int y = 0; y < height; ++y) {
+                for (int x = 0; x < width; ++x) {
+                    // retrieved the the RGB values of each pixel
+                    int red = (int) (pixelReaderbw.getColor(x, y).getRed() * 255.0);
+                    int green = (int) (pixelReaderbw.getColor(x, y).getGreen() * 255.0);
+                    int blue = (int) (pixelReaderbw.getColor(x, y).getBlue() * 255.0);
+
+                    // we check if the value we checked is greater than or equal to the luminance we selected
+                    if ((double) red >= this.luminance.getValue() &&
+                            (double) green >= this.luminance.getValue() &&
+                            (double) blue >= this.luminance.getValue()) {
+
+                        // we set the pixel color to white
                         blackWhiteImage.getPixelWriter().setColor(x, y, Color.WHITE);
                         this.starArray[y * width + x] = y * width + x;
                     } else {
-                        blackWhiteImage.getPixelWriter().setColor(x, y, Color.BLACK);
+                        // otherwise we set the pixel color to black
+                        blackWhiteImage.getPixelWriter().setColor(x, y, BLACK);
                         this.starArray[y * width + x] = -1;
                     }
                 }
             }
+
+
             this.alteredImage.setImage(blackWhiteImage);
+
+
             this.mergeElements(width, height);
             this.printArray(width, height);
             this.storeImageInHashMap();
+        }
+    }
+
+    public void randomStarColour(ActionEvent actionEvent) {
+        // get the selected image
+        Image selectedImage = this.originalImage.getImage();
+        PixelReader pixelReader = selectedImage.getPixelReader();
+        int height = (int)selectedImage.getHeight();
+        int width = (int)selectedImage.getWidth();
+        // we create a writable image to store the random color image
+        WritableImage randomColorImage = new WritableImage(width, height);
+        PixelWriter pixelWriter = randomColorImage.getPixelWriter();
+
+        //for loop iterates over each pixel in our image
+        for (int row = 0; row < height; row++){
+            for (int column = 0; column < width; column++){
+                int index = (row * width) + column;
+                int root = UnionFind.find(starArray, index);
+
+                // here if the root of the star component is not present in our hashmap, set the pixel color to black
+                if (!hashMapStar.containsKey(root)){
+                    pixelWriter.setColor(column, row, BLACK);
+                }
+            }
+        }
+
+        // we then generate random colours for stars and set the each pixel to the
+        // generated colours
+        for(int row = 0; row < height; row++){
+            for(int column = 0; column < width; column++){
+                int index = (row * width) + column;
+                int root = UnionFind.find(starArray, index);
+
+
+                // if our hashmap has the root
+                // generate a random color for the star
+                if (hashMapStar.containsKey(root)){
+
+
+                    int red = (int) (Math.random() * 256);
+                    int green = (int) (Math.random() * 256);
+                    int blue = (int) (Math.random() * 256);
+                    Color color = Color.rgb(red, green, blue);
+
+                    //iterate through entire star and update pixel colour.
+                    for (int pixelIndex : hashMapStar.get(root)) {
+                        int pixelRow = pixelIndex / width;
+                        int pixelColumn = pixelIndex % width;
+                        pixelWriter.setColor(pixelColumn, pixelRow, color);
+
+
+                    }
+                }
+            }
+            //update image view
+            originalImage.setImage(randomColorImage);
         }
     }
 
@@ -298,7 +346,7 @@ public class AnalyzerController {
 
         Collections.sort(circleList, (a, b) -> (int)(b.getRadius() - a.getRadius()));
         System.out.println(circleList);
-        int count = 0;
+        int count = 1;
 
         for (Circle c: circleList){
             Text numberS = new Text(c.getCenterX(), c.getCenterY(), count +"");
@@ -312,6 +360,8 @@ public class AnalyzerController {
             }
         }
     }
+
+
 
 
     public void resetBlueCircles(ActionEvent actionEvent) {
