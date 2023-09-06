@@ -302,6 +302,8 @@ public class AnalyzerController {
         return setSizes;
     }
 
+
+    //Blue star method, has dependencies for many other methods
     public void starBlueCircles() {
         //all keys from our star hash map
         Set<Integer> keySet = this.hashMapStar.keySet();
